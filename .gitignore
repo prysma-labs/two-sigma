@@ -5,10 +5,15 @@ dist
 .env.local
 .env*.local
 agent/.env
+agent/agent.env
 agent/node_modules
+agent/data
+agent/workspace
 agent/dist
 .secrets
 *.tsbuildinfo
 .vercel
 .DS_Store
 .env*
+!**/.env.example
+!agent/agent.env.example

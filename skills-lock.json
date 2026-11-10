@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "skills": {
+    "create-agent-tui": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-agent-tui/SKILL.md",
+      "computedHash": "b7a9950aac7cdf5b3103ed61e1a92611cadb8490b2395dc79d8828fee6734265"
+    },
+    "create-headless-agent": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/create-headless-agent/SKILL.md",
+      "computedHash": "958aa5fff501447f49e0f2aed063305f7b5ba0ab1a86617bc8fb2c9a7801680e"
+    },
+    "install-ori-harness": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/install-ori-harness/SKILL.md",
+      "computedHash": "159ab1321d19364f6bd676fe8d3a9832a68a6e24074445594ebccd2bdc4e58a2"
+    },
+    "open-responses": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "open-responses/SKILL.md",
+      "computedHash": "fde6c62120193b011c40cca23e3c719dd367c18fc1d1a715b7e699f7e44ca9fe"
+    },
+    "openrouter-agent-migration": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-agent-migration/SKILL.md",
+      "computedHash": "0b08942afa921711215a35ed7b560f0c9dfedac948d7020c47b5154f753ac172"
+    },
+    "openrouter-analytics": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-analytics/SKILL.md",
+      "computedHash": "4606ff33ac385c640d4b8ac851d280db570839b386753cfc9ec80cb04fe4d36e"
+    },
+    "openrouter-analytics-query": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-analytics-query/SKILL.md",
+      "computedHash": "023efed0539fb3876a928e7620af38d753682f88fec17b455f81c9375f2ffccf"
+    },
+    "openrouter-analytics-schema": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-analytics-schema/SKILL.md",
+      "computedHash": "f58b5d0ad07d3b94a78b5fda27d4746d1fbb3e7d955e5c7dbbe731f4b52e89f2"
+    },
+    "openrouter-benchmarks": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-benchmarks/SKILL.md",
+      "computedHash": "6f5869f21807048abd149789347c3e540024c9c483592df2461aa5b7eda77e93"
+    },
+    "openrouter-decisions": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-decisions/SKILL.md",
+      "computedHash": "3e8389f69246fce8373ab4271f6cb7d87d3732f9cf806ebb6bfafcb658b14716"
+    },
+    "openrouter-generations": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-generations/SKILL.md",
+      "computedHash": "53e96cc8dd6b93dcecef378b5d6e3823ca1896006dcd0e134a8ab44b79cd30df"
+    },
+    "openrouter-images": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-images/SKILL.md",
+      "computedHash": "6c78fd1f6e787ba5a977d9ca8609ec545a5a7065ac071957e78d0a3ba834a773"
+    },
+    "openrouter-models": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-models/SKILL.md",
+      "computedHash": "d1ef33877a30b9b22c0f1a2cedd54f795c9459ae70d8bb66978feba526549fc4"
+    },
+    "openrouter-oauth": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-oauth/SKILL.md",
+      "computedHash": "7dc098e3c66b13c1f0f89df40c8991a0c93cf7ec8139963628ee1c55d3e72ff3"
+    },
+    "openrouter-stt": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-stt/SKILL.md",
+      "computedHash": "33017d6f04b0a8ed32e604c3e3162d7770550ade4aaea9f7fe53e030c0fd1907"
+    },
+    "openrouter-tts": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-tts/SKILL.md",
+      "computedHash": "b23a0d6997e2d2743858ce8f41cd81f8931f3e3984661b23d3a2c9125b9e5dcf"
+    },
+    "openrouter-typescript-sdk": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-typescript-sdk/SKILL.md",
+      "computedHash": "444920e33326e4af1e7a0062c8843ea8c111ba3cfa3d1b2e028aed34ebaac347"
+    },
+    "openrouter-video": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openrouter-video/SKILL.md",
+      "computedHash": "ca1a65aeb1cb30b4d3a96a698a3eff1ad8c1819396469631a1ef5767bd6f0f54"
+    },
+    "spawn-ori-eval": {
+      "source": "OpenRouterTeam/skills",
+      "sourceType": "github",
+      "skillPath": "skills/spawn-ori-eval/SKILL.md",
+      "computedHash": "ed90d45540bbc558b687bf0896552a6220594a4849b2a062ccbd6666c001fbb0"
+    }
+  }
+}

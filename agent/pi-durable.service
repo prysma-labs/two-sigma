@@ -1,0 +1,17 @@
+[Unit]
+Description=Pi Durable research agent
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+WorkingDirectory=/opt/research-agent
+EnvironmentFile=/opt/research-agent/agent.env
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/node agent.ts
+Restart=always
+RestartSec=1
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,9 +1,8 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# Stack
 
-## This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+- `agent/` is a Pi Durable 1.3 process. One copy runs on each exe.dev VM. `AGENT_ID` selects the quant, on-chain, fundamental, or market prompt. The conversation stays in `agent/data/agent.sqlite` on that VM.
+- `web/` is the Next.js frontend: Assistant UI and shadcn. Vercel hosts this directory. Set the project root to `web`. Do not deploy until asked.
+- The browser talks only to `web`. `web` proxies the selected agent with `AGENT_URL_*` and `AGENT_SHARED_SECRET`, sent as `Authorization: Bearer`. The browser never sees those values.
+- Supabase stores the event log (`events`: startup, error, tool). It is not the transcript. `SUPABASE_URL` and `SUPABASE_SECRET_KEY` stay on each VM. Do not put them in `web/` or Vercel.
+- Do not put an OpenRouter key in the Vercel app. Prefer an exe.dev LLM integration (`OPENROUTER_BASE_URL`) so the key stays off the VM. Direct `OPENROUTER_API_KEY` is for local runs.
+- The VM needs Node.js 24 or newer. Install `agent/pi-durable.service` at `/opt/research-agent`. Keep the VM private. A restart continues the stored conversation.
