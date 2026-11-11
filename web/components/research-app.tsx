@@ -65,27 +65,32 @@ function AgentSidebar({
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {AGENTS.map((item) => (
-              <SidebarMenuItem key={item.id}>
-                <SidebarMenuButton
-                  type="button"
-                  isActive={item.id === agentId}
-                  className="h-auto items-start overflow-visible py-2 [&>span:last-child]:overflow-visible [&>span:last-child]:text-clip [&>span:last-child]:whitespace-normal"
-                  aria-current={item.id === agentId ? "page" : undefined}
-                  onClick={() => {
-                    onSelect(item.id);
-                    setOpenMobile(false);
-                  }}
-                >
-                  <span className="flex min-w-0 flex-col items-start gap-0.5">
-                    <span className="font-medium">{item.name}</span>
-                    <span className="text-muted-foreground text-xs font-normal whitespace-normal">
-                      {item.blurb}
+            {AGENTS.map((item, index) => {
+              const available = index === 0;
+              return (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    type="button"
+                    isActive={item.id === agentId}
+                    disabled={!available}
+                    className="h-auto items-start overflow-visible py-2 [&>span:last-child]:overflow-visible [&>span:last-child]:text-clip [&>span:last-child]:whitespace-normal"
+                    aria-current={item.id === agentId ? "page" : undefined}
+                    onClick={() => {
+                      if (!available) return;
+                      onSelect(item.id);
+                      setOpenMobile(false);
+                    }}
+                  >
+                    <span className="flex min-w-0 flex-col items-start gap-0.5">
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-muted-foreground text-xs font-normal whitespace-normal">
+                        {available ? item.blurb : "coming soon..."}
+                      </span>
                     </span>
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
@@ -94,7 +99,7 @@ function AgentSidebar({
 }
 
 export function ResearchApp() {
-  const [agentId, setAgentId] = useState<AgentId>("quant");
+  const [agentId, setAgentId] = useState<AgentId>("onchain");
   const agent = agentById(agentId)!;
 
   return (

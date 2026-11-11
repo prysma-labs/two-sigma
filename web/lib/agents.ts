@@ -1,13 +1,13 @@
 export const AGENTS = [
   {
+    id: "onchain",
+    name: "Solana auditor",
+    blurb: "Programs, wallets, and transaction flows",
+  },
+  {
     id: "quant",
     name: "Quant researcher",
     blurb: "Price, volume, and derivatives signals",
-  },
-  {
-    id: "onchain",
-    name: "On-chain researcher",
-    blurb: "Wallets, flows, and network usage",
   },
   {
     id: "fundamental",
