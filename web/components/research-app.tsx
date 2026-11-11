@@ -11,6 +11,7 @@ import { Thread } from "@/components/assistant-ui/elements/thread.aui";
 import { TooltipIconButton } from "@/components/assistant-ui/elements/tooltip-icon-button";
 import { ObserveTools, type ObservedTool } from "@/components/observe-tools";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sidebar,
   SidebarContent,
@@ -213,14 +214,18 @@ function Conversation({ agentId, name }: { agentId: AgentId; name: string }) {
       <header className="flex h-14 shrink-0 items-center gap-2 border-b-2 px-4">
         <SidebarTrigger />
         <h1 className="text-sm font-medium">{name}</h1>
-        <div role="tablist" aria-label="Views" className="bg-muted flex items-center gap-1.5 rounded-base border-2 border-border p-0.5">
-          <TabButton selected={tab === "ask"} onClick={() => setTab("ask")}>
-            Ask
-          </TabButton>
-          <TabButton selected={tab === "observe"} onClick={() => setTab("observe")}>
-            Observe
-          </TabButton>
-        </div>
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            if (value === "ask" || value === "observe") setTab(value);
+          }}
+          className="w-auto"
+        >
+          <TabsList aria-label="Views">
+            <TabsTrigger value="ask">Ask</TabsTrigger>
+            <TabsTrigger value="observe">Observe</TabsTrigger>
+          </TabsList>
+        </Tabs>
         <Badge variant={state?.busy ? "default" : "secondary"} className="ml-auto">
           {status}
         </Badge>
@@ -261,32 +266,6 @@ function mergeTools(stored: ObservedTool[], live: ObservedTool[]) {
     ordered.push(byId.get(tool.id) ?? tool);
   }
   return ordered;
-}
-
-function TabButton({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={selected}
-      onClick={onClick}
-      className={
-        selected
-          ? "bg-main text-main-foreground rounded-base px-3 py-1 text-sm font-medium shadow-shadow"
-          : "text-foreground hover:bg-secondary-background rounded-base px-3 py-1 text-sm font-medium"
-      }
-    >
-      {children}
-    </button>
-  );
 }
 
 function textOf(message: AppendMessage) {

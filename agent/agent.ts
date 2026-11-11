@@ -381,7 +381,23 @@ process.once("SIGTERM", async () => {
 });
 
 function openRouter() {
-  const base = openrouterProvider();
+  const provider = openrouterProvider();
+  const modelId = process.env.OPENROUTER_MODEL?.trim() || "deepseek/deepseek-v4.1-flash-1017";
+  const known = provider.getModels();
+  const template = known.find((model) => model.id === "deepseek/deepseek-v4.1-flash") ?? known[0];
+  const extra =
+    template && !known.some((model) => model.id === modelId)
+      ? { ...template, id: modelId, name: modelId }
+      : undefined;
+  const base = extra
+    ? {
+        ...provider,
+        getModels: () => {
+          const models = provider.getModels();
+          return models.some((model) => model.id === modelId) ? models : [...models, extra];
+        },
+      }
+    : provider;
   const baseUrl = process.env.OPENROUTER_BASE_URL;
   if (!baseUrl) {
     if (!process.env.OPENROUTER_API_KEY) {
