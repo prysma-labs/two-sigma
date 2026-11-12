@@ -10,7 +10,7 @@ import {
 import { Thread } from "@/components/assistant-ui/elements/thread.aui";
 import { TooltipIconButton } from "@/components/assistant-ui/elements/tooltip-icon-button";
 import { ObserveTools, type ObservedTool } from "@/components/observe-tools";
-import { Badge } from "@/components/ui/badge";
+import { WalletMenu } from "@/components/wallet-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sidebar,
@@ -65,8 +65,8 @@ function AgentSidebar({
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {AGENTS.map((item, index) => {
-              const available = index === 0;
+            {AGENTS.map((item) => {
+              const available = item.available;
               return (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
@@ -99,7 +99,7 @@ function AgentSidebar({
 }
 
 export function ResearchApp() {
-  const [agentId, setAgentId] = useState<AgentId>("onchain");
+  const [agentId, setAgentId] = useState<AgentId>("quant");
   const agent = agentById(agentId)!;
 
   return (
@@ -212,8 +212,6 @@ function Conversation({ agentId, name }: { agentId: AgentId; name: string }) {
     [name],
   );
 
-  const status = !connected ? "Reconnecting" : state?.busy ? "Working" : "Idle";
-
   return (
     <section className="flex h-full min-h-0 flex-col">
       <header className="flex h-14 shrink-0 items-center gap-2 border-b-2 px-4">
@@ -231,12 +229,12 @@ function Conversation({ agentId, name }: { agentId: AgentId; name: string }) {
             <TabsTrigger value="observe">Observe</TabsTrigger>
           </TabsList>
         </Tabs>
-        <Badge variant={state?.busy ? "default" : "secondary"} className="ml-auto">
-          {status}
-        </Badge>
-        <TooltipIconButton tooltip="Reset" disabled={!connected || refreshing} onClick={() => void refresh()}>
-          <RefreshCwIcon />
-        </TooltipIconButton>
+        <div className="ml-auto flex items-center gap-2">
+          <WalletMenu />
+          <TooltipIconButton tooltip="Reset" disabled={!connected || refreshing} onClick={() => void refresh()}>
+            <RefreshCwIcon />
+          </TooltipIconButton>
+        </div>
       </header>
       {sendError ? (
         <p role="alert" className="text-destructive px-4 py-2 text-sm">

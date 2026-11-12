@@ -7,8 +7,23 @@ import { defineExtension, defineTool, section } from "@earendil-works/pi-durable
 import type { TSchema } from "@earendil-works/pi-ai";
 import { Type } from "@earendil-works/pi-ai";
 
-const skillsRoot = join(import.meta.dirname, "../skills/helius-skills");
 const preferred = ["helius", "svm", "helius-jupiter", "helius-dflow", "helius-okx", "helius-phantom"];
+const profiles: Record<string, { skillsRoot: string; clientName: string; feedback: string; lead: string; readExample: string }> = {
+  onchain: {
+    skillsRoot: join(import.meta.dirname, "../skills/helius-skills"),
+    clientName: "solana-auditor",
+    feedback: "solana auditor",
+    lead: "Follow the Helius skills below. Live Solana figures come from the Helius MCP tools. When a skill points at a reference, read it with read_skill_file before you rely on it. If a tool fails or the figure is not there, name what is missing and stop. Do not invent wallets, flows, balances, or transactions.",
+    readExample: "helius/references/sender.md",
+  },
+  quant: {
+    skillsRoot: join(import.meta.dirname, "../skills/metadao"),
+    clientName: "metadao-investigator",
+    feedback: "metadao investigator",
+    lead: "Follow the Solana NAV and transaction flow audit skill below. Live Solana figures come from the Helius MCP tools. When the skill points at a reference, read it with read_skill_file before you rely on it. If a tool fails or the figure is not there, name what is missing and stop. Do not invent wallets, flows, balances, or transactions. Do not call Helius write tools.",
+    readExample: "solana-nav-flow-audit/SKILL.md",
+  },
+};
 const telemetry = new Set(["_feedback", "_feedbackTool", "_model"]);
 const require = createRequire(import.meta.url);
 
@@ -20,13 +35,14 @@ const holder: Holder = ((globalThis as typeof globalThis & { __solanaAuditorHeli
 export default await create();
 
 async function create() {
-  if (process.env.AGENT_ID?.trim() !== "onchain") return defineExtension({ name: "helius" });
+  const profile = profiles[process.env.AGENT_ID?.trim() ?? ""];
+  if (!profile) return defineExtension({ name: "helius" });
 
-  const skills = skillText(skillsRoot);
-  const connected = await connect();
-  const tools = [...(skills ? [readSkillFile()] : []), ...(connected.ok ? connected.tools : [])];
+  const skills = skillText(profile.skillsRoot);
+  const connected = await connect(profile);
+  const tools = [...(skills ? [readSkillFile(profile)] : []), ...(connected.ok ? connected.tools : [])];
   const instructions = [
-    "Follow the Helius skills below. Live Solana figures come from the Helius MCP tools. When a skill points at a reference, read it with read_skill_file before you rely on it. If a tool fails or the figure is not there, name what is missing and stop. Do not invent wallets, flows, balances, or transactions.",
+    profile.lead,
     process.env.HELIUS_API_KEY?.trim()
       ? "HELIUS_API_KEY is set."
       : "HELIUS_API_KEY is not set. Chain calls will fail until it is set on this process. Say that the key is missing.",
@@ -45,7 +61,7 @@ async function create() {
   });
 }
 
-async function connect(): Promise<
+async function connect(profile: (typeof profiles)[string]): Promise<
   { ok: true; tools: ReturnType<typeof defineTool>[]; names: string[] } | { ok: false; error: string }
 > {
   await holder.current?.close().catch((error) => console.error("helius mcp:", error));
@@ -58,7 +74,7 @@ async function connect(): Promise<
     env: mcpEnv(),
     stderr: "inherit",
   });
-  const client = new Client({ name: "solana-auditor", version: "1.0.0" });
+  const client = new Client({ name: profile.clientName, version: "1.0.0" });
   const close = async () => {
     await client.close().catch(() => undefined);
   };
@@ -76,7 +92,7 @@ async function connect(): Promise<
           try {
             const result = await client.callTool({
               name: tool.name,
-              arguments: withTelemetry(args as Record<string, unknown>, tool.name),
+              arguments: withTelemetry(args as Record<string, unknown>, tool.name, profile.feedback),
             });
             if (!result || typeof result !== "object" || !("content" in result)) {
               return {
@@ -123,9 +139,9 @@ function schemaOf(schema: unknown): TSchema {
   return copy as TSchema;
 }
 
-function withTelemetry(args: Record<string, unknown>, toolName: string) {
+function withTelemetry(args: Record<string, unknown>, toolName: string, feedback: string) {
   return {
-    _feedback: "solana auditor",
+    _feedback: feedback,
     _feedbackTool: toolName,
     _model: process.env.OPENROUTER_MODEL?.trim() || "solana-auditor",
     ...args,
@@ -144,17 +160,17 @@ function contentOf(content: readonly { type: string; text?: string; data?: strin
   return output;
 }
 
-function readSkillFile() {
+function readSkillFile(profile: (typeof profiles)[string]) {
   return defineTool({
     name: "read_skill_file",
-    description: "Read a Helius skill reference. The path is relative to the skills directory, such as helius/references/sender.md.",
+    description: `Read a skill reference. The path is relative to the skills directory, such as ${profile.readExample}.`,
     parameters: Type.Object({
       path: Type.String({ description: "Relative markdown path inside the Helius skills directory" }),
     }),
     replay: "safe",
     execute: async (args) => {
       try {
-        return { output: [{ type: "text", text: readSkill(skillsRoot, args.path) }] };
+        return { output: [{ type: "text", text: readSkill(profile.skillsRoot, args.path) }] };
       } catch (error) {
         return {
           isError: true,
@@ -195,11 +211,11 @@ function readSkill(root: string, request: string) {
   const rootReal = realpathSync(root);
   const full = resolve(rootReal, request);
   const rel = relative(rootReal, full);
-  if (!rel || rel.startsWith("..") || isAbsolute(rel)) throw new Error("Path is outside the Helius skills");
+  if (!rel || rel.startsWith("..") || isAbsolute(rel)) throw new Error("Path is outside the skills directory");
   if (!full.endsWith(".md")) throw new Error("Only markdown references can be read");
   const real = realpathSync(full);
   const realRel = relative(rootReal, real);
-  if (!realRel || realRel.startsWith("..") || isAbsolute(realRel)) throw new Error("Path is outside the Helius skills");
+  if (!realRel || realRel.startsWith("..") || isAbsolute(realRel)) throw new Error("Path is outside the skills directory");
   const stat = statSync(real);
   if (!stat.isFile() || stat.size > 200_000) throw new Error("Reference is missing or too large");
   return readFileSync(real, "utf8");

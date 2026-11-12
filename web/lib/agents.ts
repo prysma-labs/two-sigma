@@ -1,23 +1,27 @@
 export const AGENTS = [
   {
+    id: "quant",
+    name: "MetaDAO investigator",
+    blurb: "Proposals, decision markets, and launches",
+    available: true,
+  },
+  {
     id: "onchain",
     name: "Solana auditor",
     blurb: "Programs, wallets, and transaction flows",
-  },
-  {
-    id: "quant",
-    name: "Quant researcher",
-    blurb: "Price, volume, and derivatives signals",
+    available: true,
   },
   {
     id: "fundamental",
-    name: "Fundamental researcher",
-    blurb: "Protocols, token economics, and teams",
+    name: "Equity researcher",
+    blurb: "Filings, statements, and earnings",
+    available: true,
   },
   {
     id: "market",
     name: "Market structure researcher",
     blurb: "Liquidity, books, funding, and mechanics",
+    available: false,
   },
 ] as const;
 

@@ -9,6 +9,7 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-main text-main-foreground shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none",
+        noShadow: "bg-main text-main-foreground shadow-none",
         outline:
           "bg-secondary-background text-foreground shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none",
         secondary:
