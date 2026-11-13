@@ -19,7 +19,7 @@ export const AGENTS = [
   },
   {
     id: "hyperliquid",
-    name: "Hyperliquid researcher",
+    name: "Hyperliquid executor",
     blurb: "Markets, funding, and protocol mechanics",
     available: true,
   },
