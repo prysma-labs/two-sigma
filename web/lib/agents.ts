@@ -18,6 +18,12 @@ export const AGENTS = [
     available: true,
   },
   {
+    id: "hyperliquid",
+    name: "Hyperliquid researcher",
+    blurb: "Markets, funding, and protocol mechanics",
+    available: true,
+  },
+  {
     id: "market",
     name: "Market structure researcher",
     blurb: "Liquidity, books, funding, and mechanics",
@@ -31,6 +37,7 @@ const URL_ENV: Record<AgentId, string> = {
   quant: "AGENT_URL_QUANT",
   onchain: "AGENT_URL_ONCHAIN",
   fundamental: "AGENT_URL_FUNDAMENTAL",
+  hyperliquid: "AGENT_URL_HYPERLIQUID",
   market: "AGENT_URL_MARKET",
 };
 

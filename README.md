@@ -1,6 +1,6 @@
 # twosigma
 
-Four research chats: quant, on-chain, fundamental, and market structure. Each agent keeps its own conversation. The site at https://www.twosigma.fun/ proxies the one you pick in the sidebar.
+Five research chats: quant, on-chain, fundamental, Hyperliquid, and market structure. Each agent keeps its own conversation. The site at https://www.twosigma.fun/ proxies the one you pick in the sidebar.
 
 ## Start
 
