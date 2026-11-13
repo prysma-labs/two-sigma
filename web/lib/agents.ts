@@ -19,7 +19,7 @@ export const AGENTS = [
   },
   {
     id: "hyperliquid",
-    name: "Hyperliquid executor",
+    name: "Perpetual Futures Broker",
     blurb: "Markets, funding, and protocol mechanics",
     available: true,
   },
