@@ -5,6 +5,7 @@ import { defineExtension, defineTool, section } from "@earendil-works/pi-durable
 
 const origin = "https://api.hyperliquid.xyz/info";
 const actions = [
+  "perpDexs",
   "markets",
   "spotMarkets",
   "mids",
@@ -13,6 +14,7 @@ const actions = [
   "fundingHistory",
   "fundingCompare",
 ] as const;
+const dexPattern = /^[A-Za-z0-9_-]{1,32}$/;
 const intervals = {
   "1m": 60_000,
   "3m": 180_000,
@@ -53,7 +55,8 @@ const skill = stripFrontmatter(
 const instructions = [
   "Use the hyperliquid tool for current read-only market data from Hyperliquid's public info API.",
   "It has no wallet, account access, order placement, cancellation, or transfer capability.",
-  "Use markets for a perp snapshot, spotMarkets for spot, book for depth, candles for OHLCV, fundingHistory for realized funding, and fundingCompare for a cross-venue funding screen.",
+  "Use perpDexs to discover HIP-3 venues. Pass dex for builder-deployed markets, such as xyz for XYZ or io for EntropyIO.",
+  "Use markets for a perp snapshot, spotMarkets for spot, book for depth, candles for OHLCV, fundingHistory for realized funding, and fundingCompare for a primary-DEX cross-venue funding screen.",
   "If the API fails or a field is absent, say what is missing. Do not invent market data.",
 ].join(" ");
 
@@ -72,8 +75,13 @@ function create() {
         description: instructions,
         parameters: Type.Object({
           action: Type.Union(actions.map((action) => Type.Literal(action))),
+          dex: Type.Optional(
+            Type.String({ description: "HIP-3 perp DEX API name, such as xyz or io. Omit for the primary DEX." }),
+          ),
           coin: Type.Optional(
-            Type.String({ description: "Perp symbol or spot pair, such as BTC, HYPE, or PURR/USDC." }),
+            Type.String({
+              description: "Perp symbol or spot pair, such as BTC, xyz:XYZ100, io:OAI, or PURR/USDC.",
+            }),
           ),
           sort: Type.Optional(Type.Union(sorts.map((sort) => Type.Literal(sort)))),
           limit: Type.Optional(Type.Number({ description: "Maximum rows. 1-500." })),
@@ -108,6 +116,7 @@ function create() {
 
 type Args = {
   action?: string;
+  dex?: string;
   coin?: string;
   sort?: string;
   limit?: number;
@@ -123,6 +132,7 @@ async function call(args: Args) {
   if (!actions.includes(action as (typeof actions)[number])) {
     throw new Error(`action must be one of ${actions.join(", ")}`);
   }
+  if (action === "perpDexs") return perpDexs();
   if (action === "markets") return markets(args);
   if (action === "spotMarkets") return spotMarkets(args);
   if (action === "mids") return mids(args);
@@ -132,8 +142,15 @@ async function call(args: Args) {
   return fundingCompare(args);
 }
 
+async function perpDexs() {
+  const response = await info({ type: "perpDexs" });
+  return response.map((dex: Record<string, unknown> | null, index: number) =>
+    dex ?? { name: "", fullName: "Hyperliquid", primary: index === 0 },
+  );
+}
+
 async function markets(args: Args) {
-  const [meta, contexts] = await info({ type: "metaAndAssetCtxs" });
+  const [meta, contexts] = await info({ type: "metaAndAssetCtxs", ...dexBody(args.dex) });
   const rows = meta.universe.map((market: Record<string, unknown>, index: number) => {
     const context = contexts[index] ?? {};
     const mark = number(context.markPx);
@@ -159,6 +176,7 @@ async function markets(args: Args) {
 }
 
 async function spotMarkets(args: Args) {
+  if (args.dex) throw new Error("dex is only valid for perpetual markets");
   const [meta, contexts] = await info({ type: "spotMetaAndAssetCtxs" });
   const tokens = new Map<unknown, Record<string, unknown>>(
     meta.tokens.map((token: Record<string, unknown>) => [token.index, token]),
@@ -186,7 +204,7 @@ async function spotMarkets(args: Args) {
 }
 
 async function mids(args: Args) {
-  const response = await info({ type: "allMids" });
+  const response = await info({ type: "allMids", ...dexBody(args.dex) });
   const filter = args.coin?.trim().toUpperCase() ?? "";
   const rows = Object.entries(response)
     .filter(([coin]) => !filter || coin.toUpperCase().includes(filter))
@@ -195,7 +213,7 @@ async function mids(args: Args) {
 }
 
 async function book(args: Args) {
-  const coin = checkedSymbol(args.coin);
+  const coin = qualifiedCoin(args);
   const depth = checkedInteger(args.depth, 10, 1, 20, "depth");
   const nSigFigs = args.nSigFigs;
   const response = await info({
@@ -215,7 +233,7 @@ async function book(args: Args) {
 }
 
 async function candles(args: Args) {
-  const coin = checkedSymbol(args.coin);
+  const coin = qualifiedCoin(args);
   const interval = (args.interval ?? "1h") as keyof typeof intervals;
   if (!(interval in intervals)) throw new Error(`interval must be one of ${Object.keys(intervals).join(", ")}`);
   const limit = checkedInteger(args.limit, 100, 1, 500, "limit");
@@ -236,7 +254,7 @@ async function candles(args: Args) {
 }
 
 async function fundingHistory(args: Args) {
-  const coin = checkedSymbol(args.coin);
+  const coin = qualifiedCoin(args);
   const hours = checkedInteger(args.hours, 24, 1, 24 * 366, "hours");
   const limit = checkedInteger(args.limit, 500, 1, 500, "limit");
   const response = await info({
@@ -260,6 +278,9 @@ async function fundingHistory(args: Args) {
 }
 
 async function fundingCompare(args: Args) {
+  if (args.dex || args.coin?.includes(":")) {
+    throw new Error("fundingCompare is only supported for Hyperliquid's primary perp DEX");
+  }
   const response = await info({ type: "predictedFundings" });
   const rows = response.map(([coin, venues]: [string, [string, Record<string, unknown> | null][]]) => {
     const rates = new Map(
@@ -343,6 +364,29 @@ function difference(left: number | null, right: number | null) {
 
 function apr(rate: number | null, hours: number | null) {
   return rate === null || hours === null || hours <= 0 ? null : rate * 100 * (24 / hours) * 365;
+}
+
+function dexBody(value: string | undefined) {
+  const dex = checkedDex(value);
+  return dex ? { dex } : {};
+}
+
+function checkedDex(value: string | undefined) {
+  const dex = value?.trim() ?? "";
+  if (dex && !dexPattern.test(dex)) throw new Error("dex must be a Hyperliquid perp DEX API name");
+  return dex;
+}
+
+function qualifiedCoin(args: Args) {
+  const coin = checkedSymbol(args.coin);
+  const dex = checkedDex(args.dex);
+  if (!dex) return coin;
+  if (coin.includes("/")) throw new Error("dex is only valid for perpetual markets");
+  if (!coin.includes(":")) return `${dex}:${coin}`;
+  if (coin.slice(0, coin.indexOf(":")) !== dex) {
+    throw new Error(`coin prefix must match dex ${dex}`);
+  }
+  return coin;
 }
 
 function checkedSymbol(value: string | undefined) {

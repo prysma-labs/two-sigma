@@ -10,6 +10,7 @@ Use the `hyperliquid` tool for current data from Hyperliquid's public `POST /inf
 
 ## Actions
 
+- `perpDexs`: discover every perpetual DEX and its API name.
 - `markets`: perp mark, oracle, and mid prices; 24-hour change and volume; hourly funding and annualized APR; open interest; premium; leverage.
 - `spotMarkets`: spot price, 24-hour change and volume, circulating supply, market cap, and canonical status.
 - `mids`: current midpoint prices, optionally filtered by symbol substring.
@@ -18,7 +19,9 @@ Use the `hyperliquid` tool for current data from Hyperliquid's public `POST /inf
 - `fundingHistory`: hourly realized funding, annualized APR, and premium for one perp.
 - `fundingCompare`: predicted Hyperliquid, Binance, and Bybit funding as annualized APR, with venue spreads.
 
-Perp symbols are bare names such as `BTC`, `ETH`, `SOL`, and `HYPE`. Spot pairs use names such as `PURR/USDC`. Builder-deployed perps can use a dex prefix such as `xyz:XYZ100`.
+Perp symbols on the primary DEX are bare names such as `BTC`, `ETH`, `SOL`, and `HYPE`. Spot pairs use names such as `PURR/USDC`.
+
+Builder-deployed HIP-3 markets require DEX routing. Call `perpDexs` when the venue name is uncertain, then pass its API name as `dex`. XYZ uses `dex: "xyz"` and EntropyIO uses `dex: "io"`. Symbols are qualified as `xyz:XYZ100` or `io:OAI`; when `dex` is supplied, the tool can qualify a bare symbol automatically. Use the same routing for `markets`, `mids`, `book`, `candles`, and `fundingHistory`. `fundingCompare` only supports the primary DEX.
 
 For a market overview, sort and cap results to 15-20 rows. For one perp, use `markets` with `coin`. Lead with mark price, 24-hour change, funding APR, and open interest.
 
