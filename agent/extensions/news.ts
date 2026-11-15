@@ -7,24 +7,26 @@ import { defineExtension, defineTool, section } from "@earendil-works/pi-durable
 import { privateKeyToAccount } from "viem/accounts";
 
 const origin = "https://api.exa.ai";
-const actions = ["search", "contents"] as const;
 const searchTypes = ["auto", "lite", "deep-lite", "deep"] as const;
 const categories = ["news", "publication", "company", "financial report", "personal site", "people"] as const;
+const periods = ["today", "24h", "7d"] as const;
 const skill = stripFrontmatter(
   readFileSync(join(import.meta.dirname, "../skills/news-researcher/SKILL.md"), "utf8"),
 );
 const instructions = [
-  "Use the exa tool for current web search and page contents.",
+  "Research financially material news about markets, companies, macroeconomics, central banks, regulation, commodities, and digital assets.",
+  "Use current_time for the current local date and time. Use the exa period parameter for today, the last 24 hours, or the last 7 days.",
+  "Use exa_search for current web search and exa_contents to read pages.",
   "Each call pays USDC on Base over x402. Search is limited to 10 results and payments above $0.10 are refused.",
-  "Use search to discover sources, then contents to read the most relevant URLs. Cite source URLs and distinguish publication dates from event dates.",
+  "Use search to discover sources, then contents to read the most relevant URLs. Rank stories by financial impact, breadth, source quality, and corroboration. Cite source URLs and distinguish publication dates from event dates.",
   "If Exa fails or current reporting is unavailable, say what is missing. Never invent sources, headlines, quotations, dates, events, or figures.",
 ].join(" ");
 
 type Args = {
-  action?: string;
   query?: string;
   type?: string;
   category?: string;
+  period?: string;
   numResults?: number;
   startPublishedDate?: string;
   endPublishedDate?: string;
@@ -52,19 +54,32 @@ function create() {
     sections: [section("news", () => [instructions, keyNote, skill].join("\n\n"), { tag: false })],
     tools: [
       defineTool({
-        name: "exa",
-        description: instructions,
+        name: "exa_search",
+        description: "Search current financial news with Exa. This is a paid x402 request.",
         parameters: Type.Object({
-          action: Type.Union(actions.map((action) => Type.Literal(action))),
-          query: Type.Optional(Type.String({ description: "Search query. Required for search." })),
+          query: Type.String({ description: "Search query." }),
           type: Type.Optional(Type.Union(searchTypes.map((type) => Type.Literal(type)))),
           category: Type.Optional(Type.Union(categories.map((category) => Type.Literal(category)))),
+          period: Type.Optional(Type.Union(periods.map((period) => Type.Literal(period)))),
           numResults: Type.Optional(Type.Number({ description: "Search results, from 1 to 10. Default 5." })),
           startPublishedDate: Type.Optional(Type.String({ description: "ISO 8601 lower publication-date bound." })),
           endPublishedDate: Type.Optional(Type.String({ description: "ISO 8601 upper publication-date bound." })),
           includeDomains: Type.Optional(Type.Array(Type.String(), { description: "Domains or domain paths to include." })),
           excludeDomains: Type.Optional(Type.Array(Type.String(), { description: "Domains or domain paths to exclude." })),
-          urls: Type.Optional(Type.Array(Type.String(), { description: "One to ten URLs. Required for contents." })),
+        }),
+        execute: async (args) => {
+          try {
+            return await call("search", args);
+          } catch (error) {
+            return fail(redact(error instanceof Error ? error.message : String(error)));
+          }
+        },
+      }),
+      defineTool({
+        name: "exa_contents",
+        description: "Retrieve source pages with Exa. This is a paid x402 request.",
+        parameters: Type.Object({
+          urls: Type.Array(Type.String(), { description: "One to ten URLs." }),
           text: Type.Optional(Type.Boolean({ description: "Return page text for contents. Defaults true." })),
           highlights: Type.Optional(Type.Boolean({ description: "Return relevant highlights for contents." })),
           summary: Type.Optional(Type.Boolean({ description: "Return an Exa-generated summary for contents." })),
@@ -72,19 +87,26 @@ function create() {
         }),
         execute: async (args) => {
           try {
-            return await call(args);
+            return await call("contents", args);
           } catch (error) {
             return fail(redact(error instanceof Error ? error.message : String(error)));
           }
         },
       }),
+      defineTool({
+        name: "current_time",
+        description: "Return the current local date, time, timezone, and UTC timestamp without making a paid request.",
+        parameters: Type.Object({}),
+        replay: "safe",
+        execute: async () => ({
+          output: [{ type: "text" as const, text: JSON.stringify(currentTime()) }],
+        }),
+      }),
     ],
   });
 }
 
-async function call(args: Args) {
-  const action = args.action ?? "";
-  if (!actions.includes(action as (typeof actions)[number])) return fail("action must be search or contents");
+async function call(action: "search" | "contents", args: Args) {
   const body = action === "search" ? searchBody(args) : contentsBody(args);
   if ("isError" in body) return body;
   const response = await paidFetch()(`${origin}/${action}`, {
@@ -121,9 +143,20 @@ function searchBody(args: Args) {
   if (!Array.isArray(includeDomains)) return includeDomains;
   const excludeDomains = domains(args.excludeDomains, "excludeDomains");
   if (!Array.isArray(excludeDomains)) return excludeDomains;
-  const startPublishedDate = isoDate(args.startPublishedDate, "startPublishedDate");
+  const period = args.period?.trim() ?? "";
+  if (period && !periods.includes(period as (typeof periods)[number])) {
+    return fail(`period must be one of ${periods.join(", ")}`);
+  }
+  if (period && (args.startPublishedDate || args.endPublishedDate)) {
+    return fail("period cannot be combined with explicit publication dates");
+  }
+  const range = relativeRange(period);
+  const startPublishedDate = isoDate(
+    range?.start ?? args.startPublishedDate,
+    "startPublishedDate",
+  );
   if (typeof startPublishedDate !== "string") return startPublishedDate;
-  const endPublishedDate = isoDate(args.endPublishedDate, "endPublishedDate");
+  const endPublishedDate = isoDate(range?.end ?? args.endPublishedDate, "endPublishedDate");
   if (typeof endPublishedDate !== "string") return endPublishedDate;
   if (startPublishedDate && endPublishedDate && startPublishedDate > endPublishedDate) {
     return fail("startPublishedDate must be on or before endPublishedDate");
@@ -173,6 +206,33 @@ function domains(values: string[] | undefined, name: string) {
     return fail(`${name} contains an invalid domain or path`);
   }
   return checked;
+}
+
+function relativeRange(period: string) {
+  if (!period) return undefined;
+  const now = new Date();
+  const start =
+    period === "today"
+      ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      : new Date(now.getTime() - (period === "24h" ? 24 : 24 * 7) * 60 * 60 * 1_000);
+  return { start: start.toISOString(), end: now.toISOString() };
+}
+
+function currentTime() {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const value = (type: "year" | "month" | "day") =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return {
+    localDate: `${value("year")}-${value("month")}-${value("day")}`,
+    localTime: now.toString(),
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    utc: now.toISOString(),
+  };
 }
 
 function isoDate(value: string | undefined, name: string) {

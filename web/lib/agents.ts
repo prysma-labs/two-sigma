@@ -8,7 +8,7 @@ export const AGENTS = [
   {
     id: "news",
     name: "News Researcher",
-    blurb: "Current events, sources, and developments",
+    blurb: "Financial markets, companies, and macro news",
     available: true,
   },
   {
