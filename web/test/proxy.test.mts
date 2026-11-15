@@ -5,6 +5,7 @@ import { agentHeaders, agentUrl } from "../lib/proxy.ts";
 const env = {
   AGENT_SHARED_SECRET: "shared-secret",
   AGENT_URL_QUANT: "https://quant.example/",
+  AGENT_URL_NEWS: "https://news.example",
   AGENT_URL_ONCHAIN: "https://onchain.example",
   AGENT_URL_FUNDAMENTAL: "https://fundamental.example",
   AGENT_URL_HYPERLIQUID: "https://hyperliquid.example",
@@ -13,9 +14,11 @@ const env = {
 
 test("the selected agent is reached on that VM", () => {
   const quant = agentUrl("quant", "/api/events", env);
+  const news = agentUrl("news", "/api/state", env);
   const hyperliquid = agentUrl("hyperliquid", "/api/state", env);
   const market = agentUrl("market", "/api/messages", env);
   assert.equal(quant, "https://quant.example/api/events");
+  assert.equal(news, "https://news.example/api/state");
   assert.equal(hyperliquid, "https://hyperliquid.example/api/state");
   assert.equal(market, "https://market.example/api/messages");
   assert.notEqual(quant, market);

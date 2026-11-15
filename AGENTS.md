@@ -3,7 +3,7 @@ Vercel Project URL: https://vercel.com/prysma-labs-6582f354/two-sigma
 
 # Stack
 
-Five research chats. The browser talks only to `web/`. That app proxies the selected agent. It never sees the VM URL, the shared secret, Supabase, or an OpenRouter key, and it does not call a model.
+Six research chats. The browser talks only to `web/`. That app proxies the selected agent. It never sees the VM URL, the shared secret, Supabase, or an OpenRouter key, and it does not call a model.
 
 - **Next.js** (`web/`, App Router) is the site. Vercel hosts it. Route handlers proxy the agent selected in the sidebar.
 - **assistant-ui** renders the Ask thread from the agent's event stream. It does not talk to a model provider.
@@ -35,6 +35,7 @@ One Pi Durable 1.3 process per VM (`agent/agent.ts`), listening on `127.0.0.1:80
 | Id | VM |
 | --- | --- |
 | `quant` | https://quant-researcher.exe.xyz |
+| `news` | https://news-researcher.exe.xyz |
 | `onchain` | https://onchain-researcher.exe.xyz |
 | `fundamental` | https://fundamental-researcher.exe.xyz |
 | `hyperliquid` | https://hyperliquid-researcher.exe.xyz |

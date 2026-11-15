@@ -6,6 +6,12 @@ export const AGENTS = [
     available: true,
   },
   {
+    id: "news",
+    name: "News Researcher",
+    blurb: "Current events, sources, and developments",
+    available: true,
+  },
+  {
     id: "onchain",
     name: "Solana auditor",
     blurb: "Programs, wallets, and transaction flows",
@@ -35,6 +41,7 @@ export type AgentId = (typeof AGENTS)[number]["id"];
 
 const URL_ENV: Record<AgentId, string> = {
   quant: "AGENT_URL_QUANT",
+  news: "AGENT_URL_NEWS",
   onchain: "AGENT_URL_ONCHAIN",
   fundamental: "AGENT_URL_FUNDAMENTAL",
   hyperliquid: "AGENT_URL_HYPERLIQUID",
