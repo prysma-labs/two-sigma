@@ -1,11 +1,5 @@
 export const AGENTS = [
   {
-    id: "quant",
-    name: "MetaDAO investigator",
-    blurb: "Proposals, decision markets, and launches",
-    available: true,
-  },
-  {
     id: "news",
     name: "News Researcher",
     blurb: "Financial markets, companies, and macro news",
@@ -27,6 +21,12 @@ export const AGENTS = [
     id: "hyperliquid",
     name: "Perpetuals Broker",
     blurb: "Markets, funding, and protocol mechanics",
+    available: true,
+  },
+  {
+    id: "quant",
+    name: "MetaDAO investigator",
+    blurb: "Proposals, decision markets, and launches",
     available: true,
   },
   {
